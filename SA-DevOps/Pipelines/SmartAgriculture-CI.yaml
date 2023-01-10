@@ -1,0 +1,53 @@
+# Variable 'githubkey' was defined in the Variables tab
+trigger:
+  branches:
+    include:
+    - main
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: refs/heads/main
+jobs:
+- job: Job_1
+  displayName: Agent job 1
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    clean: true
+    fetchTags: false
+  - task: CmdLine@2
+    displayName: Install Qemu
+    inputs:
+      script: >
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - task: Docker@2
+    displayName: build
+    inputs:
+      containerRegistry: 58a7b671-f9eb-4d0d-bebb-deeded693942
+      repository: receiver
+      command: build
+      Dockerfile: modules/receiver/Dockerfile
+      arguments: --platform linux/arm64
+  - task: Docker@2
+    displayName: push
+    inputs:
+      containerRegistry: 58a7b671-f9eb-4d0d-bebb-deeded693942
+      repository: receiver
+      command: push
+  - task: Bash@3
+    displayName: Update kubernetes manifest
+    inputs:
+      filePath: DevOps/updateImage.sh
+  - task: CopyFiles@2
+    displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+    inputs:
+      Contents: >-
+        **
+
+        ${{bake.manifestsBundle}}
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+...

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: receiver-svc
+spec:
+  selector:
+    app.kubernetes.io/name: edge-receiver
+  # type: LoadBalancer
+  ports:
+    - port:  1883
+      targetPort:  1883
+      protocol:  TCP
+      name:  mqtt
+    - port:  11883
+      targetPort:  11883
+      protocol:  TCP
+      name:  mqtt-2
+    - port:  80
+      targetPort:  websocket
+      protocol:  TCP
+      name:  websocket
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https

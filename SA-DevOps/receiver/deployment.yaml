@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: receiver
+  name: edge-receiver
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: receiver
+  template:
+    metadata:
+      labels:
+        app: receiver
+    spec:
+      containers:
+      - name: edge-receiver
+        image: sanoderegistry.azurecr.io/receiver:37
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: NODE_NAME
+          value: "rasp1"
+        ports:
+        - name: mqtt
+          containerPort: 1883
+          protocol: TCP
+        - name: mqtt-2
+          containerPort: 11883
+          protocol: TCP
+        - name: https
+          containerPort: 443
+          protocol: TCP
+        - name: websocket
+          containerPort: 80
+          protocol: TCP
+        securityContext:
+          privileged: true
+      imagePullSecrets:
+      -  name: azsecret
